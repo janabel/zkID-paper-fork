@@ -1,51 +1,40 @@
-import { sha256 } from "@noble/hashes/sha2";
-import assert from "assert";
 import { WitnessTester } from "circomkit";
 import { circomkit } from "./common";
 import { encodeClaims } from "../src/utils";
 
-describe("ClaimDecoder", () => {
-  let circuit: WitnessTester<["claims", "claimLengths", "claimChooser"], ["decodedClaims", "claimHashes"]>;
+describe("AgeClaimDecoder", () => {
+  let circuit: WitnessTester<["claims", "claimLengths"], ["decodedClaims"]>;
 
   const maxClaimsLength = 128;
-  const maxClaims = 6;
+  const maxClaims = 2;
 
   before(async () => {
-    circuit = await circomkit.WitnessTester("ClaimDecoder", {
+    circuit = await circomkit.WitnessTester("AgeClaimDecoder", {
       file: "claim-decoder",
-      template: "ClaimDecoder",
-      params: [maxClaims, maxClaimsLength],
+      template: "AgeClaimDecoder",
+      params: [maxClaimsLength],
       recompile: true,
     });
     console.log("#constraints:", await circuit.getConstraintCount());
   });
 
   it("It should decode raw claims with padding correctly", async () => {
-    const inputs = [
-      "WyJPVWpCZ1E4RFVnenRRR3dxaWVhZE13IiwibmFtZSIsIumZs-etseeOsiJd",
-      "WyJRdWRNTnlPelV2TEJQYXVrT1pfcVlnIiwiaWRfbnVtYmVyIiwiQTIzNDU2Nzg5MCJd",
-      "WyI4STBWclR0QnpNdlFFSmxmV2hqS2FBIiwicm9jX2JpcnRoZGF5IiwiMTA0MDYwNSJd",
-      "WyJhVVBlVWhVOEtRLTE4eG9DTGVDN1FRIiwidHlwZSIsIuaZrumAmuWwj-Wei-i7iiJd",
-      "WyJvQndUa0JUdmQzS2pBSXB3U21XUjNBIiwiY29udHJvbG51bWJlciIsIjQwMTA0MDIwOTE0NDUiXQ",
-      "WyJlcGtGMjdwejFVY01naHRYRV96Vi1BIiwiZ0RhdGUiLCIxMDIwNzAxIl0",
-    ];
+    const inputs = ["WyI4STBWclR0QnpNdlFFSmxmV2hqS2FBIiwicm9jX2JpcnRoZGF5IiwiMTA0MDYwNSJd"];
 
-    const claimChooser = [0, 1, 1, 1, 0, 0];
-
-    const expectedOutputs = inputs.map((b64) => Buffer.from(b64, "base64").toString("utf8"));
+    // const expectedOutputs = inputs.map((b64) => Buffer.from(b64, "base64").toString("utf8"));
 
     const { claimArray, claimLengths } = encodeClaims(inputs, maxClaims, maxClaimsLength);
 
     const witness = await circuit.calculateWitness({
-      claims: claimArray,
-      claimLengths,
-      claimChooser,
+      claims: claimArray[0],
+      claimLengths: claimLengths[0],
     });
 
-    const outputs = await circuit.readWitnessSignals(witness, ["decodedClaims", "claimHashes"]);
+    const outputs = await circuit.readWitnessSignals(witness, ["decodedClaims"]);
 
     const decodedClaims = outputs.decodedClaims as number[][];
-    const circuitClaimHash = outputs.claimHashes as number[][];
+    console.log("decodedClaims:", decodedClaims);
+    // const circuitClaimHash = outputs.claimHashes as number[][];
 
     // for (let i = 0; i < inputs.length; i++) {
     //   const length = Number(claimLengths[i]);

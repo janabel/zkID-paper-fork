@@ -15,8 +15,7 @@ template ClaimDecoder(maxMatches, maxClaimsLength) {
     var decodedLen = (maxClaimsLength * 3) / 4;
 
     signal input claims[maxMatches][maxClaimsLength];  
-    signal input claimLengths[maxMatches];      
-
+    signal input claimLengths[maxMatches];  
     signal output decodedClaims[maxMatches][decodedLen];
 
     component paddedClaims[maxMatches];
@@ -86,5 +85,30 @@ template ClaimComparator(maxMatches , maxSubstringLength){
             eq[i][j].in[1] <== sdDecoders[i].base64Out[j];
             eq[i][j].out * useClaim[i] === useClaim[i];
         }
+    }
+}
+
+
+template AgeClaimDecoder(maxClaimsLength) {
+    var decodedLen = (maxClaimsLength * 3) / 4;
+
+    signal input claims[maxClaimsLength];  
+    signal input claimLengths;  
+
+    signal output decodedClaims[decodedLen];
+    
+    component paddedClaims;
+    component claimDecoders;
+
+    paddedClaims = SelectSubArrayBase64(maxClaimsLength,maxClaimsLength);
+    paddedClaims.in <== claims;
+    paddedClaims.startIndex <== 0;
+    paddedClaims.length <== claimLengths;
+
+    claimDecoders = Base64Decode(decodedLen);
+    claimDecoders.in <== paddedClaims.out;
+
+    for (var j = 0; j < decodedLen; j++) {
+            decodedClaims[j] <== claimDecoders.out[j];
     }
 }

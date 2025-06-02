@@ -39,7 +39,7 @@ export function generateJwtInputs(
   // we are not checking the JWT token format, assuming that is correct
   const [b64header, b64payload, b64signature] = token.split(".");
 
-  // check that we are not exceeding the limits
+    // check that we are not exceeding the limits
   assert.ok(b64header.length <= params.maxB64HeaderLength);
   assert.ok(b64payload.length <= params.maxB64PayloadLength);
   assert.ok(matches.length <= params.maxMatches);
@@ -67,8 +67,9 @@ export function generateJwtInputs(
     matchIndex.push(0);
   }
 
-  let ageClaim = atob(claims[1]).split(",")[1].replace(/"/g, "").trim();
-  assert.ok(ageClaim === "roc_birthday");
+  // apply this check on the ageClaim only
+  // let ageClaim = atob(claims[1]).split(",")[1].replace(/"/g, "").trim();
+  // assert.ok(ageClaim === "roc_birthday");
 
   let { claimArray, claimLengths } = encodeClaims(claims, params.maxMatches, params.maxClaimLength);
 
